@@ -1,36 +1,36 @@
-import 'react-native-gesture-handler';
-import React, { useState, useEffect } from "react";
-import { NavigationContainer } from '@react-navigation/native';
+import React, { PureComponent, Component, useState, useEffect } from "react";
 import { createStackNavigator } from '@react-navigation/stack';
-import { StyleSheet, FlatList, Image, TouchableOpacity, Text, View, SafeAreaView} from 'react-native';
-import { responsiveFontSizes } from '@material-ui/core';
+import { StyleSheet, RefreshControl, ScrollView, FlatList, Button, Image, TouchableOpacity, Text, View, SafeAreaView, Alert} from 'react-native';
+// import settingMysql from "./settingMysql.js";
+import home from "./HomeScreen.js";
+
 
 const dataEx = [
   {id: 1, name: "Food", amount: 10},
   {id: 2, name: "Traffic", amount: 20},
   {id: 3, name: "Fun", amount: 30},
-  {id: 4, name: "Fuels", amount: 40},
-  {id: 5, name: "Medical", amount: 50},
-  {id: 6, name: "Snacks", amount: 60},
-  {id: 7, name: "Grocery", amount: 70},
-  {id: 8, name: "Clothing", amount: 80},
-  {id: 9, name: "Bill", amount: 90},
+  {id: 4, name: "Fuels", amount: 40}
 ]
 
-  const dataIn = [
-  {id: 1, name: "Food", amount: 900},
+const dataIn = [
+  {id: 1, name: "Food", amount: 90},
   {id: 2, name: "Traffic", amount: 800},
   {id: 3, name: "Fun", amount: 700},
-  {id: 4, name: "Fuels", amount: 600},
-  {id: 5, name: "Medical", amount: 500},
-  {id: 6, name: "Snacks", amount: 400},
-  {id: 7, name: "Grocery", amount: 300},
-  {id: 8, name: "Clothing", amount: 200},
-  {id: 9, name: "Bill", amount: 100},
-  ]
-
+  {id: 4, name: "Fuels", amount: 600}
+]
 
 function BillScreen({navigation}){
+
+  const wait = (timeout) => {
+    return new Promise(resolve => setTimeout(resolve, timeout));
+  }
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    wait(2000).then(() => setRefreshing(false));
+  }, []);
 
   const [ExIn, setExIn] = useState([1]); // 1 for expense; 2 for income
 
@@ -43,29 +43,30 @@ function BillScreen({navigation}){
   }, []);
 
   function list() {
-    if(ExIn == 1){
+    if(ExIn == 1){ // list for expense
       const renderItem = ({item}) => {
         return (
-          
             <View style = {{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
-              <Text style = {{fontSize: 30}}> {item.name}</Text>
+              <Text style = {{fontSize: 30}}> {item.type}</Text>
               <Text style = {{fontSize: 30}}> {item.amount} </Text>
             </View>
         )
       }
         return (
           <View>
+            
             <FlatList 
             data = {dataEx}
             renderItem={renderItem}
             keyExtractor = {item => `${item.id}`}/>
           </View>
         )
-    }else {
+    }
+    else {  // list for income
       const renderItem = ({item}) => {
         return (
             <View style = {{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
-              <Text style = {{fontSize: 30}}> {item.name}</Text>
+              <Text style = {{fontSize: 30}}> {item.type}</Text>
               <Text style = {{fontSize: 30}}> {item.amount} </Text>
             </View>
         )
@@ -80,32 +81,44 @@ function BillScreen({navigation}){
         )
     }
   }
-  
-  function result() {
-    const resultEx = dataEx.reduce((total, currentValue) => total = total + currentValue.amount,0);
-    const resultIn = dataIn.reduce((total, currentValue) => total = total + currentValue.amount,0);
 
+  function amount() {
+    var sum = 0;
     if(ExIn == 1){
+      sum = dataEx.reduce((a, b) => (a + b.amount), 0)
       return (
-        <View style = {styles.Title}>
-          <Text style = {styles.MoneyText}> HK$ </Text>
-          <Text style = {styles.MoneyText}> {resultEx} </Text>
-        </View>
-      )
-    }else {
-      return (
-        <View style = {styles.Title}>
-          <Text style = {styles.MoneyText}> HK$ </Text>
-          <Text style = {styles.MoneyText}> {resultIn} </Text>
-        </View>
+        <Text style = {styles.MoneyText}> {sum} </Text>
       )
     }
-    
+    else{
+      sum = dataIn.reduce((a, b) => (a + b.amount), 0)
+      return (
+        <Text style = {styles.MoneyText}> {sum} </Text>
+      )
+    }
+  }
+  
+  function result() {
+    return (
+      <View style = {styles.Title}>
+        <Text style = {styles.MoneyText}> HK$ </Text>
+        {amount()}
+      </View>
+    )
   }
   
   return (
     
     <SafeAreaView style = {styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
+      >
       <View style = {styles.Title}>
         <Text style = {styles.TitleText}>  {currentDate}</Text>
         <TouchableOpacity onPress = {() => navigation.navigate('Add')}>
@@ -128,6 +141,7 @@ function BillScreen({navigation}){
       </View>
 
       {/* <View style = {styles.PieChart}>
+      
       </View> */}
 
       <View style = {styles.Title}>
@@ -137,6 +151,7 @@ function BillScreen({navigation}){
       <View style = {styles.List}>
         {list()}
        </View> 
+       </ScrollView>
      </SafeAreaView>
   );
 }
@@ -157,7 +172,7 @@ function Add({navigation}){
         <Text style = {{fontSize: 30}}>{nums[i][j]}</Text>
         </TouchableOpacity>)
       }else{
-        row.push(<TouchableOpacity onPress = {() =>  setresultText(prevresultText => '')}
+        row.push(<TouchableOpacity onPress = {() => setresultText(prevresultText => '')}
         style = {styles.NumberButton}>
         <Text style = {{fontSize: 30}}>{nums[i][j]}</Text>
        </TouchableOpacity>)
@@ -166,17 +181,57 @@ function Add({navigation}){
     rows.push(<View style = {styles.NumberRow}>{row}</View>)
   }
 
-  function save(){
-    let sum
+  function save() {
+    let Name = []
+    if(Type == 1){
+      Name = 'Food'
+    }else if(Type == 2){
+      Name = 'Traffic'
+    }else if(Type == 3){
+      Name = 'Fun'
+    }else if(Type == 4){
+      Name = 'Fuel'
+    }else if(Type == 5){
+      Name = 'Medical'
+    }else if(Type == 6){
+      Name = 'Snacks'
+    }else if(Type == 7){
+      Name = 'Grocery'
+    }else if(Type == 8){
+      Name = 'Clothing'
+    }else{
+      Name = 'Bill'
+    }
+
+    var num = 0;
+    let length = resultText.length;
+
+    for(let i = 0; i < length; i++){
+      if(resultText[i] != '.'){
+        num = (num * (10) + resultText[i])
+      }
+      else{
+        break
+      }
+    }
+
     if(ExIn == 1){
-      const find = dataEx.find(element => element.id === Type)
-      find.amount
+      // totalEx = totalEx + num
       
+      dataEx.push({id: Type, name: Name, amount: num})
+    }else {
+      // totalIn = totalIn + num
+      
+      dataIn.push({id: Type, name: Name, amount: num})
     }
-    else{
-      const find = dataIn.find(element => element.id === Type)
-      find.amount
-    }
+
+    Alert.alert(
+      "Saved!",
+      " ",[{
+        text: "Ok",
+        onPress: () => navigation.navigate('Bill')
+      }]
+    )
   }
 
    return (
@@ -260,30 +315,30 @@ function Add({navigation}){
         </View>
       </View>
 
-      <View style = {styles.Save}>
-        <TouchableOpacity onPress = {() => {save()}}>
-          <Text style = {styles.SaveText}>Save</Text>
-        </TouchableOpacity>
+      <View>
+        <Button title = {"Save"} onPress = {() => {save()}}/>
+        {/* <Button title = {"Save"} onPress = {save(), HomeScreen.Addfish()}/> */}
       </View>
     </SafeAreaView>
   );
   
 }
 
-const Stack = createStackNavigator();
-
-export default function App() {
+class AddBilScreen extends React.Component {
     
-  return(
-    <NavigationContainer>
+  render(){
+
+    const Stack = createStackNavigator();
+    return(
 
       <Stack.Navigator initialRouteName="Bill">
         <Stack.Screen name="Bill" component={BillScreen}/>
         <Stack.Screen name="Add" component={Add}/>
       </Stack.Navigator>
-      
-    </NavigationContainer>
-  );
+    );
+    
+  }
+    
 }
 
 const styles = StyleSheet.create({
@@ -347,15 +402,16 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     justifyContent: 'center'
   },
-  Save: {
-    flex: 0.5,
-    alignItems: 'center'
-  },
   SaveText: {
     fontSize: 20,
   },
   MoneyText: {
     fontSize: 40,
     fontWeight: 'bold'
+  },
+  scrollView: {
+    flex: 1,
   }
-})
+});
+
+export default AddBilScreen;

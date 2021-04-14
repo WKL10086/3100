@@ -16,12 +16,19 @@ class BudgetScreen extends React.Component {
       onPressButton() {
         this.setState({click: true})
         console.log(this.state.value);
+        this.setState({value: this.state.value})
       }
   render(){
+    var budget =0;
+      budget = 2000;
+    const check = this.state.click;
+    if(check){
+      budget = this.state.value;
+    }
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignContent:'center', }}>
           <View style = {styles.header}>
-          <Text style ={{fontSize:20, marginBottom:5}}>{this.state.currency}{this.state.value}</Text>
+          <Text style ={{fontSize:20, marginBottom:5}}>{this.state.currency}{budget}</Text>
             <TextInput      
             keyboardType='numeric'
             placeholder = "change the value here"
