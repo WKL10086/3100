@@ -56,6 +56,7 @@ router.post("/", async (req, res) => {
   }
 });
 
+//delete a friend after pressing cross button on friendlist
 router.delete("/deleteFriendrById", async (req, res) => {
   let conn;
   try {
@@ -75,6 +76,7 @@ router.delete("/deleteFriendrById", async (req, res) => {
   }
 });
 
+//find friend info by user id
 router.get("/:id", async (req, res) => {
   let conn;
   try {
@@ -94,7 +96,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/updateCustomerById", async (req, res) => {
+//updating friend status by id(such as from pending to delete, from requested to friend etc.)
+router.post("/updateFriendById", async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
